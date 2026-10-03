@@ -283,7 +283,13 @@ h2 em,.grande em{font-family:var(--serif);font-weight:400;font-style:italic;colo
 /* ---- arranque ---- */
 .arranque{position:fixed;inset:0;z-index:90;background:var(--obs);display:flex;align-items:center;justify-content:center;transition:opacity .6s var(--ease),visibility 0s .6s}
 .arranque.fuera{opacity:0;visibility:hidden}
-.arranque pre{font-family:var(--mono);font-size:13px;color:var(--ash);line-height:1.8;min-width:300px}
+.arranque pre{font-family:var(--mono);font-size:13px;color:var(--ash);line-height:1.8;min-width:300px;min-height:150px}
+.ar-caja{padding:0 24px}
+.ar-entrar{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-top:18px;animation:entra .5s var(--ease) both}
+.ar-entrar[hidden]{display:none}
+.ar-entrar span{background:var(--rs);color:#1a0604;font-weight:500;font-size:15px;padding:12px 30px;border:1px solid var(--rs);transition:.25s var(--ease)}
+.ar-entrar:hover span,.ar-entrar:focus-visible span{background:var(--rs2);border-color:var(--rs2);box-shadow:0 12px 40px -12px rgba(255,61,46,.8)}
+.ar-entrar small{font-family:var(--mono);font-size:11px;color:var(--dim)}
 .arranque .r{color:var(--rs)}
 .arranque .b{color:var(--bone)}
 
@@ -347,7 +353,7 @@ h2 em,.grande em{font-family:var(--serif);font-weight:400;font-style:italic;colo
 <div class="vineta" aria-hidden="true"></div>
 <div class="grano" aria-hidden="true"></div>
 
-<div class="arranque" id="arranque" aria-hidden="true"><pre id="arranque-log"></pre></div>
+<div class="arranque" id="arranque" role="dialog" aria-label="Pantalla de entrada"><div class="ar-caja"><pre id="arranque-log"></pre><button class="ar-entrar" id="arranque-entrar" hidden><span>Entrar</span><small>pulsa o toca cualquier tecla · con música</small></button></div></div>
 
 <div class="app">
 
@@ -567,17 +573,22 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 $('#anio').textContent = new Date().getFullYear();
 
-/* ---------- arranque (una vez por sesión) ---------- */
+/* ---------- pantalla de entrada: el clic del visitante desbloquea el audio ---------- */
 (() => {
-  const el = $('#arranque'), log = $('#arranque-log');
-  let visto = false;
-  try { visto = sessionStorage.getItem('arranque') === '1'; sessionStorage.setItem('arranque', '1'); } catch (e) {}
-  if (visto || reduce) { el.remove(); return; }
+  const el = $('#arranque'), log = $('#arranque-log'), entrar = $('#arranque-entrar');
   const lineas = ['<span class="r">●</span> conectando con la network…', '<span class="r">✔</span> proxy', '<span class="r">✔</span> servidores', '<span class="r">✔</span> bot y web', '<span class="b">&gt; xgdier_</span>'];
-  lineas.forEach((l, i) => setTimeout(() => log.innerHTML += l + '\n', i * 170));
-  setTimeout(() => el.classList.add('fuera'), lineas.length * 170 + 350);
-  setTimeout(() => el.remove(), lineas.length * 170 + 1100);
-  el.addEventListener('click', () => el.classList.add('fuera'));
+  const paso = reduce ? 0 : 150;
+  lineas.forEach((l, i) => setTimeout(() => log.innerHTML += l + '\n', i * paso));
+  setTimeout(() => { entrar.hidden = false; entrar.focus(); }, lineas.length * paso + (reduce ? 0 : 200));
+  let dentro = false;
+  const pasar = () => {
+    if (dentro) return; dentro = true;
+    el.classList.add('fuera');
+    document.dispatchEvent(new Event('entrar'));
+    setTimeout(() => el.remove(), 800);
+  };
+  el.addEventListener('click', pasar);
+  addEventListener('keydown', e => { if (!dentro && !e.metaKey && !e.ctrlKey && !e.altKey && e.key !== 'Tab' && e.key !== 'Shift') pasar(); });
 })();
 
 /* ---------- fondo: rejilla de redstone ---------- */
@@ -813,17 +824,8 @@ const nav = (() => {
   const tocar = () => { aplicar(); return audio.play().then(fundido); };
 
   pintarVol(); aplicar();
-  if (!pausadaAMano) {
-    // el navegador suele bloquear el audio hasta que hay una interacción; entonces arranca con la primera
-    tocar().catch(() => {
-      const primera = e => {
-        if (e.target.closest && e.target.closest('#musica')) return;
-        ['pointerdown', 'keydown'].forEach(ev => removeEventListener(ev, primera, true));
-        if (!pausadaAMano && audio.paused) tocar().catch(() => {});
-      };
-      ['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, primera, true));
-    });
-  }
+  // el clic en "Entrar" desbloquea el audio del navegador y arranca la música
+  document.addEventListener('entrar', () => { if (!pausadaAMano) tocar().catch(() => {}); });
 
   $('#m-play').addEventListener('click', () => {
     if (audio.paused) { pausadaAMano = false; guardar('musica-pausa', '0'); tocar().catch(() => {}); }
