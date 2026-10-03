@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>xgdier_ · Dev full-stack de Minecraft</title>
+<meta name="description" content="xgdier_: fork de servidor propio, proxies Velocity, plugins, bots de Discord y páginas web para networks de Minecraft.">
+<meta name="theme-color" content="#0c0a0b">
+<meta property="og:title" content="xgdier_ · Dev full-stack de Minecraft">
+<meta property="og:description" content="Fork de servidor propio, proxies Velocity, plugins, bots de Discord y páginas web para networks de Minecraft.">
+<meta property="og:type" content="website">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --obs:#0c0a0b; --obs2:#131011; --card:rgba(22,17,18,.72); --card2:#1a1415;
+  --line:#2a2122; --line2:#3a2c2c;
+  --bone:#f2eae0; --ash:#a39589; --dim:#6f625a;
+  --rs:#ff3d2e; --rs2:#ff7a45; --rsoff:#4a1612;
+  --display:'Bricolage Grotesque',serif; --serif:'Instrument Serif',serif;
+  --body:'Geist',system-ui,sans-serif; --mono:'Geist Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,.7,.1,1);
+  --aside:340px; --barra:34px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--obs)}
+body{color:var(--bone);font-family:var(--body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow:hidden}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+::selection{background:var(--rs);color:var(--obs)}
+:focus-visible{outline:2px solid var(--rs);outline-offset:2px}
+
+/* ================= fondo ================= */
+#red{position:fixed;inset:0;z-index:0;pointer-events:none}
+#iconos{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+#iconos img{position:absolute;opacity:.07;filter:grayscale(.3);animation:flotar var(--d,22s) ease-in-out infinite alternate}
+@keyframes flotar{0%{transform:translate(0,0) rotate(var(--r0))}100%{transform:translate(var(--dx),var(--dy)) rotate(var(--r1))}}
+.vineta{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(1000px 700px at 85% -10%,rgba(255,61,46,.13),transparent 60%),
+             radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55))}
+.grano{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ================= estructura ================= */
+.app{position:relative;z-index:1;height:100vh;height:100dvh;display:grid;grid-template-columns:var(--aside) 1fr;grid-template-rows:1fr var(--barra)}
+
+/* ---- perfil (columna fija) ---- */
+.perfil{grid-row:1;border-right:1px solid var(--line);background:linear-gradient(180deg,rgba(19,16,17,.85),rgba(12,10,11,.6));backdrop-filter:blur(10px);display:flex;flex-direction:column;min-height:0}
+.marca{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--line)}
+.logo{font-family:var(--mono);font-weight:500;font-size:16px;display:flex;align-items:center;gap:10px}
+.logo .dot{width:9px;height:9px;background:var(--rs);box-shadow:0 0 12px var(--rs);animation:pulso 2.4s ease-in-out infinite}
+.logo i{color:var(--rs);font-style:normal;animation:cursor 1.1s steps(1) infinite}
+@keyframes pulso{50%{opacity:.45;box-shadow:0 0 3px var(--rs)}}
+@keyframes cursor{50%{opacity:0}}
+.ver{font-family:var(--mono);font-size:11px;color:var(--dim);border:1px solid var(--line);padding:3px 7px}
+
+.perfil-cuerpo{display:flex;flex-direction:column;flex:1;min-height:0}
+.escenario{position:relative;flex:1;min-height:240px}
+.escenario canvas{position:absolute;inset:0;width:100%!important;height:100%!important;cursor:grab;z-index:2}
+.escenario canvas:active{cursor:grabbing}
+.halo{position:absolute;left:50%;top:48%;width:300px;height:300px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,61,46,.26),rgba(255,61,46,.05) 45%,transparent 70%);animation:pulso 4s ease-in-out infinite}
+.pedestal{position:absolute;left:50%;bottom:14px;width:210px;height:40px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(255,61,46,.5),rgba(255,61,46,.1) 50%,transparent 72%)}
+.pedestal::after{content:"";position:absolute;inset:13px 48px;border-radius:50%;border:1px solid rgba(255,61,46,.5)}
+.pista{position:absolute;left:16px;top:12px;z-index:3;font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;align-items:center;gap:6px;pointer-events:none;transition:opacity .5s}
+.pista svg{width:13px;height:13px;color:var(--rs)}
+.pista.fuera{opacity:0}
+.poses{position:absolute;right:12px;top:10px;z-index:3;display:flex;flex-direction:column;gap:4px}
+.poses button{font-family:var(--mono);font-size:10.5px;padding:4px 8px;border:1px solid var(--line2);color:var(--ash);background:rgba(12,10,11,.75);text-align:left;transition:.2s}
+.poses button:hover{color:var(--bone);border-color:var(--ash)}
+.poses button.on{background:var(--rs);border-color:var(--rs);color:#1a0604}
+
+.ficha{padding:18px 24px 20px;border-top:1px solid var(--line)}
+.ficha h1{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.035em;line-height:1}
+.ficha .rol{font-family:var(--serif);font-style:italic;font-size:19px;color:var(--ash);margin-top:4px}
+.estado{display:inline-flex;align-items:center;gap:8px;margin-top:14px;font-family:var(--mono);font-size:11.5px;color:var(--rs);border:1px solid rgba(255,61,46,.35);background:rgba(255,61,46,.07);padding:5px 10px}
+.estado i{width:7px;height:7px;background:var(--rs);box-shadow:0 0 8px var(--rs);animation:pulso 2s infinite}
+.enlaces{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:16px}
+.enlaces a,.enlaces button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;border:1px solid var(--line);font-size:11.5px;color:var(--ash);transition:.25s var(--ease)}
+.enlaces a:hover,.enlaces button:hover{border-color:var(--rs);color:var(--bone);transform:translateY(-2px)}
+.enlaces svg{width:18px;height:18px}
+
+/* ---- zona principal ---- */
+.principal{grid-row:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+.tabs{display:flex;align-items:center;gap:2px;padding:0 28px;height:64px;border-bottom:1px solid var(--line);background:rgba(12,10,11,.55);backdrop-filter:blur(10px);position:relative}
+.tab{position:relative;height:64px;padding:0 16px;font-size:14px;color:var(--ash);display:flex;align-items:center;gap:8px;transition:color .2s}
+.tab small{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.tab:hover{color:var(--bone)}
+.tab.on{color:var(--bone)}
+.tab.on small{color:var(--rs)}
+.subrayado{position:absolute;bottom:-1px;height:2px;background:var(--rs);box-shadow:0 0 10px var(--rs);transition:left .45s var(--ease),width .45s var(--ease)}
+.tabs .atajo{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;gap:6px;align-items:center}
+.tabs kbd{font-family:var(--mono);font-size:10.5px;border:1px solid var(--line2);padding:1px 6px;color:var(--ash)}
+
+.vistas{position:relative;flex:1;min-height:0}
+.vista{position:absolute;inset:0;padding:40px 44px;overflow:auto;visibility:hidden;opacity:0;transform:translateY(14px);transition:opacity .45s var(--ease),transform .55s var(--ease),visibility 0s .45s;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.vista.on{visibility:visible;opacity:1;transform:none;transition:opacity .5s var(--ease) .08s,transform .6s var(--ease) .08s,visibility 0s}
+.vista .st{opacity:0;transform:translateY(16px)}
+.vista.on .st{animation:entra .7s var(--ease) forwards;animation-delay:calc(var(--i,0) * 70ms + 120ms)}
+@keyframes entra{to{opacity:1;transform:none}}
+
+.eti{font-family:var(--mono);font-size:12px;color:var(--rs);display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.eti::before{content:"";width:18px;height:1px;background:var(--rs)}
+h2{font-family:var(--display);font-weight:800;font-size:clamp(30px,min(4.2vw,6.4vh),58px);line-height:.98;letter-spacing:-.04em}
+h2 em,.grande em{font-family:var(--serif);font-weight:400;font-style:italic;color:var(--rs);letter-spacing:-.01em}
+.intro{color:var(--ash);max-width:560px;margin-top:14px;font-size:15.5px}
+
+.btn{display:inline-flex;align-items:center;gap:10px;padding:12px 20px;font-size:14.5px;font-weight:500;border:1px solid var(--line2);transition:.25s var(--ease)}
+.btn:hover{border-color:var(--bone);transform:translateY(-2px)}
+.btn.rs{background:var(--rs);border-color:var(--rs);color:#1a0604}
+.btn.rs:hover{background:var(--rs2);border-color:var(--rs2);box-shadow:0 12px 40px -12px rgba(255,61,46,.8)}
+.btn svg{width:16px;height:16px}
+.chip{font-family:var(--mono);font-size:11.5px;padding:4px 10px;border:1px solid var(--line2);color:var(--ash);background:rgba(12,10,11,.5)}
+.panel{background:var(--card);border:1px solid var(--line);backdrop-filter:blur(8px)}
+
+/* ---- vista: inicio ---- */
+#v-inicio{display:flex;flex-direction:column;justify-content:center}
+.grande{font-family:var(--display);font-weight:800;font-size:clamp(46px,min(7.6vw,12.5vh),124px);line-height:.9;letter-spacing:-.05em}
+.inicio-pie{margin-top:32px}
+.inicio-pie p{color:var(--ash);font-size:16.5px;max-width:540px}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.datos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);margin-top:40px;max-width:780px}
+.dato{padding:18px 20px;border-right:1px solid var(--line);background:rgba(12,10,11,.45)}
+.dato:last-child{border-right:0}
+.dato b{display:block;font-family:var(--display);font-weight:800;font-size:34px;letter-spacing:-.04em;line-height:1}
+.dato b span{color:var(--rs)}
+.dato small{color:var(--ash);font-size:13px}
+
+/* ---- vista: servicios ---- */
+.capas{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:30px}
+.capa{grid-column:span 2;padding:22px 22px 20px;position:relative;overflow:hidden;transition:border-color .3s,transform .4s var(--ease)}
+.capa:nth-child(4),.capa:nth-child(5){grid-column:span 3}
+.capa:hover{border-color:var(--rs);transform:translateY(-3px)}
+.capa::after{content:"";position:absolute;left:0;top:0;width:3px;height:0;background:var(--rs);box-shadow:0 0 12px var(--rs);transition:height .5s var(--ease)}
+.capa:hover::after{height:100%}
+.capa .n{font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;justify-content:space-between;align-items:center}
+.capa .ics{display:flex;gap:6px}
+.capa .ics img{width:26px;height:26px;object-fit:contain}
+.capa small{display:block;font-family:var(--mono);font-size:11px;color:var(--rs2);letter-spacing:.06em;text-transform:uppercase;margin-top:18px}
+.capa h3{font-family:var(--display);font-weight:600;font-size:23px;letter-spacing:-.025em;line-height:1.1;margin-top:4px}
+.capa p{color:var(--ash);font-size:14px;margin-top:8px}
+.extra{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}
+
+/* ---- vista: experiencia ---- */
+.exp-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:48px;align-items:center;min-height:100%}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cargo{padding:24px 24px 26px;min-height:190px;display:flex;flex-direction:column;position:relative;overflow:hidden;transition:transform .4s var(--ease),border-color .3s}
+.cargo:hover{transform:translateY(-3px);border-color:var(--line2)}
+.cargo .est{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:flex;align-items:center;gap:8px}
+.cargo .est i{width:7px;height:7px;background:var(--rsoff)}
+.cargo.act{border-color:rgba(255,61,46,.35)}
+.cargo.act .est{color:var(--rs)}
+.cargo.act .est i{background:var(--rs);box-shadow:0 0 8px var(--rs);animation:pulso 2.4s infinite}
+.cargo .q{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ash);margin-top:auto;padding-top:26px}
+.cargo .s{font-family:var(--display);font-weight:800;font-size:clamp(28px,3vw,40px);letter-spacing:-.045em;line-height:1}
+.cargo .bg{position:absolute;right:-8px;bottom:-22px;font-family:var(--display);font-weight:800;font-size:110px;letter-spacing:-.06em;color:rgba(242,234,224,.025);pointer-events:none;line-height:1}
+.linea{margin-top:28px;border-left:1px solid var(--line2);padding-left:18px;display:grid;gap:12px}
+.linea div{position:relative;font-size:14px;color:var(--ash)}
+.linea div::before{content:"";position:absolute;left:-22px;top:7px;width:7px;height:7px;background:var(--obs);border:1px solid var(--rs)}
+.linea b{color:var(--bone);font-weight:500}
+
+/* ---- vista: proyectos ---- */
+#v-proyectos{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px}
+.visor{display:flex;flex-direction:column;min-height:0;gap:14px}
+.pantalla{position:relative;flex:1;min-height:260px;border:1px solid var(--line);background:#080607;overflow:hidden;cursor:zoom-in}
+.pantalla>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .45s var(--ease),transform 1.2s var(--ease)}
+.pantalla:hover>img.on{transform:scale(1.03)}
+.pantalla>img:not(.on){opacity:0}
+.pantalla .zoom{position:absolute;right:12px;top:12px;z-index:2;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--bone);background:rgba(12,10,11,.75);border:1px solid var(--line2);padding:5px 9px}
+.pantalla .zoom svg{width:13px;height:13px}
+.miniaturas{position:absolute;left:12px;bottom:12px;z-index:2;display:flex;gap:6px}
+.miniaturas button{width:64px;height:38px;border:1px solid var(--line2);overflow:hidden;opacity:.6;transition:.2s}
+.miniaturas button.on{opacity:1;border-color:var(--rs)}
+.miniaturas img{width:100%;height:100%;object-fit:cover}
+.ficha-pj{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:end}
+.ficha-pj .tipo{font-family:var(--mono);font-size:11px;color:var(--rs2);letter-spacing:.08em;text-transform:uppercase}
+.ficha-pj h3{font-family:var(--display);font-weight:800;font-size:clamp(26px,2.8vw,38px);letter-spacing:-.04em;line-height:1.02;margin-top:4px}
+.ficha-pj p{color:var(--ash);font-size:14.5px;margin-top:6px;max-width:620px}
+.ficha-pj .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:260px}
+.lista{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto}
+.item{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:center;padding:8px;border:1px solid var(--line);background:rgba(12,10,11,.5);text-align:left;transition:.25s var(--ease);position:relative}
+.item:hover{border-color:var(--line2);background:var(--card2)}
+.item.on{border-color:var(--rs);background:rgba(255,61,46,.07)}
+.item.on::before{content:"";position:absolute;left:-1px;top:-1px;bottom:-1px;width:3px;background:var(--rs);box-shadow:0 0 10px var(--rs)}
+.item img{width:72px;height:46px;object-fit:cover;border:1px solid var(--line)}
+.item b{display:block;font-family:var(--display);font-weight:600;font-size:15.5px;letter-spacing:-.015em}
+.item small{font-family:var(--mono);font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.item .k{position:absolute;right:10px;top:8px;font-family:var(--mono);font-size:10px;color:var(--dim)}
+
+/* ---- vista: kaxguard ---- */
+.demo{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:44px;align-items:center;min-height:100%}
+.puntos{margin-top:24px;border-top:1px solid var(--line)}
+.puntos div{display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.puntos span{font-family:var(--mono);color:var(--rs);font-size:12.5px;padding-top:2px}
+.dc{background:#313338;color:#dbdee1;font-family:'gg sans','Noto Sans',var(--body);font-size:14px;border-radius:8px;padding:16px;box-shadow:0 40px 90px -40px rgba(0,0,0,.9);border:1px solid #1e1f22}
+.dc .msg{display:flex;gap:14px}
+.dc .av{width:40px;height:40px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 35%,#ff9a4d,#c4410f);display:grid;place-items:center;font-weight:700;color:#1a0604;font-family:var(--display)}
+.dc .who{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.dc .who b{color:#f0b232;font-weight:600}
+.dc .app-tag{background:#5865f2;color:#fff;font-size:10px;font-weight:600;padding:1px 5px;border-radius:3px}
+.dc .hr{color:#949ba4;font-size:12px}
+.emb{background:#2b2d31;border-left:4px solid var(--rs);border-radius:4px;padding:14px 16px;min-height:250px;transition:border-color .3s}
+.emb h4{font-size:16px;color:#f2f3f5;font-weight:600;margin-bottom:4px}
+.emb .d{color:#b5bac1;font-size:13.5px;margin-bottom:14px}
+.mods{display:grid;grid-template-columns:repeat(3,1fr);gap:11px 14px}
+.mod b{display:block;color:#f2f3f5;font-size:13px;font-weight:600}
+.mod span{font-size:12.5px;color:#b5bac1;display:flex;align-items:center;gap:6px}
+.mod span::before{content:"";width:9px;height:9px;border-radius:50%;background:#23a55a;flex:none}
+.mod.off span::before{background:#f23f43}
+.det{display:grid;gap:9px}
+.fila{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#232428;border-radius:6px;padding:10px 12px;font-size:13.5px}
+.fila .k{color:#b5bac1}
+.sw{width:38px;height:22px;border-radius:99px;background:#80848e;position:relative;transition:.2s;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on{background:#23a55a}
+.sw.on::after{left:19px}
+.emb .pie{font-size:11.5px;color:#949ba4;margin-top:14px;font-weight:600}
+.sel{margin-top:10px;position:relative}
+.sel select{width:100%;appearance:none;-webkit-appearance:none;background:#1e1f22;color:#dbdee1;border:1px solid #1e1f22;border-radius:6px;padding:12px 40px 12px 14px;font-size:14.5px;font-family:inherit;cursor:pointer}
+.sel::after{content:"";position:absolute;right:16px;top:50%;width:8px;height:8px;border-right:2px solid #b5bac1;border-bottom:2px solid #b5bac1;transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.dc .solo{font-size:12px;color:#949ba4;margin-top:8px}
+.nota{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-top:10px;text-align:right}
+
+/* ---- vista: contacto ---- */
+#v-contacto{display:flex;flex-direction:column;justify-content:center}
+.contacto-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:40px;max-width:980px}
+.canal{padding:24px;display:flex;flex-direction:column;gap:30px;transition:.35s var(--ease);text-align:left;position:relative;overflow:hidden}
+.canal:hover{border-color:var(--rs);transform:translateY(-4px)}
+.canal.prim{background:var(--rs);border-color:var(--rs);color:#1a0604}
+.canal.prim:hover{background:var(--rs2);box-shadow:0 20px 60px -20px rgba(255,61,46,.8)}
+.canal .top{display:flex;justify-content:space-between;align-items:center}
+.canal svg{width:24px;height:24px}
+.canal .fl{width:18px;height:18px;transition:transform .35s var(--ease)}
+.canal:hover .fl{transform:translate(3px,-3px)}
+.canal small{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.75}
+.canal b{display:block;font-family:var(--display);font-weight:600;font-size:21px;letter-spacing:-.02em;margin-top:4px;word-break:break-word}
+.aviso{font-family:var(--mono);font-size:12.5px;color:var(--rs);height:18px;margin-top:16px}
+
+/* ---- barra de estado ---- */
+.estado-bar{grid-column:1/-1;grid-row:2;display:flex;align-items:center;gap:22px;padding:0 18px;border-top:1px solid var(--line);background:rgba(10,8,9,.9);font-family:var(--mono);font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden}
+.estado-bar .ok{color:var(--rs);display:flex;align-items:center;gap:7px}
+.estado-bar .ok i{width:6px;height:6px;background:var(--rs);box-shadow:0 0 6px var(--rs)}
+.estado-bar b{color:var(--ash);font-weight:500}
+.estado-bar .der{margin-left:auto;display:flex;gap:18px}
+
+/* ---- música ---- */
+.musica{display:flex;align-items:center;gap:9px;padding-left:18px;border-left:1px solid var(--line);height:100%}
+.musica button{width:22px;height:22px;display:grid;place-items:center;color:var(--ash);transition:color .2s}
+.musica button:hover{color:var(--rs)}
+.musica svg{width:13px;height:13px}
+#m-play{border:1px solid var(--line2)}
+#m-play .i-pausa,.musica.sonando #m-play .i-play{display:none}
+.musica.sonando #m-play .i-pausa{display:block}
+.musica.sonando #m-play{border-color:var(--rs);color:var(--rs)}
+#m-mute .cruz,.musica.mudo #m-mute .ondas{display:none}
+.musica.mudo #m-mute .cruz{display:inline}
+.eq{display:flex;align-items:flex-end;gap:2px;height:12px}
+.eq i{width:2px;height:3px;background:var(--dim)}
+.musica.sonando .eq i{background:var(--rs);animation:eq .9s ease-in-out infinite alternate}
+.musica.sonando .eq i:nth-child(2){animation-delay:-.3s;animation-duration:.7s}
+.musica.sonando .eq i:nth-child(3){animation-delay:-.6s;animation-duration:1.1s}
+.musica.sonando .eq i:nth-child(4){animation-delay:-.15s;animation-duration:.8s}
+@keyframes eq{from{height:2px}to{height:12px}}
+.m-tit{color:var(--ash)}
+.m-tit em{font-style:normal;color:var(--dim)}
+#m-vol{-webkit-appearance:none;appearance:none;width:78px;height:14px;background:transparent;cursor:pointer;--v:35%}
+#m-vol::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--rs) var(--v),var(--line2) var(--v))}
+#m-vol::-moz-range-track{height:2px;background:linear-gradient(90deg,var(--rs) var(--v),var(--line2) var(--v))}
+#m-vol::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;margin-top:-4px;background:var(--bone);border:0}
+#m-vol::-moz-range-thumb{width:10px;height:10px;background:var(--bone);border:0;border-radius:0}
+
+/* ---- lightbox ---- */
+.lb{position:fixed;inset:0;z-index:80;background:rgba(8,6,7,.95);backdrop-filter:blur(8px);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.lb.on{display:flex;animation:entra .3s var(--ease)}
+.lb img{max-width:min(1500px,100%);max-height:80vh;border:1px solid var(--line2)}
+.lb .pie{font-family:var(--mono);font-size:12.5px;color:var(--ash);margin-top:14px}
+.lb .x{position:absolute;top:16px;right:18px;width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line2)}
+.lb .x:hover{border-color:var(--rs);color:var(--rs)}
+.lb svg{width:18px;height:18px}
+
+/* ---- arranque ---- */
+.arranque{position:fixed;inset:0;z-index:90;background:var(--obs);display:flex;align-items:center;justify-content:center;transition:opacity .6s var(--ease),visibility 0s .6s}
+.arranque.fuera{opacity:0;visibility:hidden}
+.arranque pre{font-family:var(--mono);font-size:13px;color:var(--ash);line-height:1.8;min-width:300px}
+.arranque .r{color:var(--rs)}
+.arranque .b{color:var(--bone)}
+
+/* ================= responsive ================= */
+@media(max-width:1180px){
+  :root{--aside:300px}
+  #v-proyectos{grid-template-columns:minmax(0,1fr) 250px}
+  .exp-grid,.demo{grid-template-columns:1fr;gap:28px;min-height:0}
+  .tabs .atajo{display:none}
+}
+@media(max-width:900px){
+  body{overflow:auto}
+  .app{height:auto;min-height:100dvh;grid-template-columns:1fr;grid-template-rows:auto 1fr auto}
+  .perfil{grid-row:1;border-right:0;border-bottom:1px solid var(--line)}
+  .marca{padding:14px 16px}
+  .perfil-cuerpo{display:grid;grid-template-columns:150px 1fr;align-items:center}
+  .escenario{min-height:230px;height:230px;flex:none}
+  .halo{width:200px;height:200px}
+  .pedestal{width:140px;bottom:8px}
+  .poses{right:auto;left:6px;top:auto;bottom:4px;flex-direction:row;flex-wrap:wrap;gap:3px;max-width:140px}
+  .poses button{font-size:10px;padding:2px 5px}
+  .pista{display:none}
+  .ficha{border-top:0;padding:14px 16px 14px 0}
+  .ficha h1{font-size:26px}
+  .principal{grid-row:2}
+  .tabs{position:sticky;top:0;z-index:10;height:52px;padding:0 6px;overflow-x:auto;scrollbar-width:none}
+  .tab{height:52px;padding:0 12px;white-space:nowrap;font-size:13.5px}
+  .tab small{display:none}
+  .vistas{flex:none}
+  .vista{position:relative;inset:auto;display:none!important;padding:28px 16px 40px;overflow:visible}
+  .vista.on{display:block!important}
+  #v-proyectos.on{display:flex!important;flex-direction:column}
+  .pantalla{min-height:0;aspect-ratio:16/10;flex:none}
+  .ficha-pj{grid-template-columns:1fr}
+  .ficha-pj .chips{justify-content:flex-start}
+  .lista{overflow:visible}
+  .capas{grid-template-columns:1fr}
+  .capa,.capa:nth-child(4),.capa:nth-child(5){grid-column:auto}
+  .roles{grid-template-columns:1fr}
+  .dato{padding:14px 12px}.dato b{font-size:26px}.dato small{font-size:11.5px}
+  .mods{grid-template-columns:repeat(2,1fr)}
+  .contacto-grid{grid-template-columns:1fr}
+  .estado-bar{grid-row:3;position:sticky;bottom:0;z-index:10;height:var(--barra)}
+  .estado-bar .der span:not(:last-child),.estado-bar .tec-bar{display:none}
+  .estado-bar{gap:12px;padding:0 12px}
+  .musica{padding-left:12px}
+  #m-vol{width:64px}
+}
+@media(max-width:420px){.m-tit{display:none}.perfil-cuerpo{grid-template-columns:130px 1fr}.enlaces a,.enlaces button{font-size:10.5px}}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .vista .st{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<canvas id="red" aria-hidden="true"></canvas>
+<div id="iconos" aria-hidden="true"></div>
+<div class="vineta" aria-hidden="true"></div>
+<div class="grano" aria-hidden="true"></div>
+
+<div class="arranque" id="arranque" aria-hidden="true"><pre id="arranque-log"></pre></div>
+
+<div class="app">
+
+  <!-- ============ PERFIL ============ -->
+  <aside class="perfil">
+    <div class="marca">
+      <span class="logo"><span class="dot"></span>xgdier_<i>▌</i></span>
+      <span class="ver">dev / full-stack</span>
+    </div>
+    <div class="perfil-cuerpo">
+      <div class="escenario">
+        <div class="halo" aria-hidden="true"></div>
+        <div class="pedestal" aria-hidden="true"></div>
+        <canvas id="skin" aria-label="Skin 3D de xgdier_. Arrastra para girarla."></canvas>
+        <div class="pista" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg>arrastra</div>
+        <div class="poses" role="group" aria-label="Animación de la skin">
+          <button data-a="idle" class="on">quieto</button><button data-a="wave">saludar</button><button data-a="walk">caminar</button><button data-a="run">correr</button>
+        </div>
+      </div>
+      <div class="ficha">
+        <h1>xgdier_</h1>
+        <div class="rol">Dev full-stack de Minecraft</div>
+        <div class="estado"><i></i>Disponible para proyectos</div>
+        <div class="enlaces">
+          <a href="https://discord.gg/XsK4PPQjy7" target="_blank" rel="noopener" title="Abrir ticket en Discord">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.4C.6 9 0 13.6.3 18.1A19.8 19.8 0 0 0 6.3 21l1.3-2a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4-2 1 1.3 2a19.7 19.7 0 0 0 6-2.9c.4-5.2-.7-9.8-3.4-13.7ZM8.5 15.3c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm7 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>Discord</a>
+          <button class="copiar" data-v="ediytem@gmail.com" title="Copiar correo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14"/><path d="m3 7 9 6 9-6"/></svg>Correo</button>
+          <a href="https://github.com/ediguard23" target="_blank" rel="noopener" title="GitHub ediguard23">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.6.4-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9V21c0 .3.2.6.7.5A10 10 0 0 0 12 2Z"/></svg>GitHub</a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ PRINCIPAL ============ -->
+  <main class="principal">
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+      <button class="tab on" role="tab" data-v="inicio"><small>01</small>Inicio</button>
+      <button class="tab" role="tab" data-v="servicios"><small>02</small>Servicios</button>
+      <button class="tab" role="tab" data-v="experiencia"><small>03</small>Experiencia</button>
+      <button class="tab" role="tab" data-v="proyectos"><small>04</small>Proyectos</button>
+      <button class="tab" role="tab" data-v="kaxguard"><small>05</small>KaxGuard</button>
+      <button class="tab" role="tab" data-v="contacto"><small>06</small>Contacto</button>
+      <span class="subrayado" id="subrayado"></span>
+      <span class="atajo"><kbd>←</kbd><kbd>→</kbd> navegar</span>
+    </nav>
+
+    <div class="vistas">
+
+      <!-- INICIO -->
+      <section class="vista on" id="v-inicio" role="tabpanel" aria-label="Inicio">
+        <div class="eti st">dev full-stack de minecraft</div>
+        <div class="grande st" style="--i:1">La network entera,<br><em>de un solo</em> dev.</div>
+        <div class="inicio-pie st" style="--i:2">
+          <p>Desarrollo mi propio fork de servidor, domino Velocity y construyo todo lo demás: plugins, bots de Discord y páginas web. Una persona, todas las piezas.</p>
+          <div class="cta">
+            <button class="btn rs" data-ir="proyectos">Ver proyectos
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <button class="btn" data-ir="contacto">Trabajemos juntos</button>
+          </div>
+        </div>
+        <div class="datos st" style="--i:3">
+          <div class="dato"><b>2<span>.</span></b><small>networks fundadas</small></div>
+          <div class="dato"><b>5<span>.</span></b><small>modos en producción</small></div>
+          <div class="dato"><b>35<span>.</span></b><small>minijuegos propios</small></div>
+        </div>
+      </section>
+
+      <!-- SERVICIOS -->
+      <section class="vista" id="v-servicios" role="tabpanel" aria-label="Servicios">
+        <div class="eti st">qué hago</div>
+        <h2 class="st" style="--i:1">Cinco capas, <em>un solo responsable.</em></h2>
+        <p class="intro st" style="--i:2">Una network son muchas piezas que tienen que encajar. Me encargo de todas, así que nada se pierde entre un equipo y otro.</p>
+        <div class="capas">
+          <article class="capa panel st" style="--i:3"><div class="n"><span>/01</span><span class="ics"><img src="img/stack/java.png" alt="Java"></span></div><small>Servidor</small><h3>Fork NIGHT</h3><p>Mi propio fork, con un perfil por modo: duelos fieles al vanilla, battle royale y party games.</p></article>
+          <article class="capa panel st" style="--i:4"><div class="n"><span>/02</span><span class="ics"><img src="img/stack/java.png" alt="Java"><img src="img/stack/mysql.png" alt="MySQL"></span></div><small>Red</small><h3>Proxy Velocity</h3><p>Login propio, herramientas de red, Bedrock por Geyser, y permisos y sanciones compartidos.</p></article>
+          <article class="capa panel st" style="--i:5"><div class="n"><span>/03</span><span class="ics"><img src="img/stack/java.png" alt="Java"></span></div><small>Juego</small><h3>Plugins y configuración</h3><p>Modos completos, plugins a medida y plugins de terceros que conviven sin lag.</p></article>
+          <article class="capa panel st" style="--i:6"><div class="n"><span>/04</span><span class="ics"><img src="img/stack/nodejs.webp" alt="Node.js"></span></div><small>Comunidad</small><h3>Bots de Discord</h3><p>Bots modulares con tickets, verificación, sorteos, anti-raid e IA, conectados al servidor por API.</p></article>
+          <article class="capa panel st" style="--i:7"><div class="n"><span>/05</span><span class="ics"><img src="img/stack/html.png" alt="HTML"><img src="img/stack/mysql.png" alt="MySQL"></span></div><small>Web</small><h3>Tiendas y páginas</h3><p>Webs y tiendas con carrito, login con el nick y entrega automática en el servidor.</p></article>
+        </div>
+        <div class="extra st" style="--i:8">
+          <span class="chip">Java</span><span class="chip">Node.js</span><span class="chip">HTML / JS</span><span class="chip">MySQL</span><span class="chip">Paper / Leaf</span><span class="chip">Velocity</span><span class="chip">LuckPerms</span><span class="chip">LiteBans</span><span class="chip">Geyser</span><span class="chip">MythicMobs</span><span class="chip">WorldGuard</span><span class="chip">ProtocolLib</span><span class="chip">Supabase</span><span class="chip">discord.js</span><span class="chip">Pterodactyl</span>
+        </div>
+      </section>
+
+      <!-- EXPERIENCIA -->
+      <section class="vista" id="v-experiencia" role="tabpanel" aria-label="Experiencia">
+        <div class="exp-grid">
+          <div>
+            <div class="eti st">experiencia</div>
+            <h2 class="st" style="--i:1">De moderar networks <em>a fundarlas.</em></h2>
+            <p class="intro st" style="--i:2">Conozco una network desde dentro: primero en el staff, viendo qué falla y qué necesitan los jugadores, después construyéndolas desde cero.</p>
+            <div class="linea st" style="--i:3">
+              <div><b>Staff</b> · moderación en Tilted y Mineback</div>
+              <div><b>Desarrollo</b> · plugins, proxies y fork propio</div>
+              <div><b>Fundador</b> · VertexMC y PeakMC</div>
+            </div>
+          </div>
+          <div class="roles">
+            <div class="cargo panel act st" style="--i:3"><span class="est"><i></i>Actual</span><span class="q">Developer y founder</span><span class="s">PeakMC</span><span class="bg">P</span></div>
+            <div class="cargo panel act st" style="--i:4"><span class="est"><i></i>Actual</span><span class="q">Developer y founder</span><span class="s">VertexMC</span><span class="bg">V</span></div>
+            <div class="cargo panel st" style="--i:5"><span class="est"><i></i>Staff</span><span class="q">Sr. Mod</span><span class="s">Mineback</span><span class="bg">M</span></div>
+            <div class="cargo panel st" style="--i:6"><span class="est"><i></i>Staff</span><span class="q">Ex Mod</span><span class="s">Tilted</span><span class="bg">T</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROYECTOS -->
+      <section class="vista" id="v-proyectos" role="tabpanel" aria-label="Proyectos">
+        <div class="visor">
+          <div class="pantalla st" id="pantalla" role="button" tabindex="0" aria-label="Ver captura en grande">
+            <span class="zoom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>ampliar</span>
+            <div class="miniaturas" id="miniaturas"></div>
+          </div>
+          <div class="ficha-pj st" style="--i:1" id="ficha-pj"></div>
+        </div>
+        <div class="lista st" style="--i:1" id="lista" role="listbox" aria-label="Proyectos"></div>
+      </section>
+
+      <!-- KAXGUARD -->
+      <section class="vista" id="v-kaxguard" role="tabpanel" aria-label="KaxGuard">
+        <div class="demo">
+          <div>
+            <div class="eti st">demo interactiva</div>
+            <h2 class="st" style="--i:1">KaxGuard, <em>pruébalo tú.</em></h2>
+            <p class="intro st" style="--i:2">Mi bot de Discord se configura entero desde un solo comando, sin tocar archivos. Elige un módulo en el desplegable para ver su panel.</p>
+            <div class="puntos st" style="--i:3">
+              <div><span>+15</span><p>módulos: tickets, postulaciones, sorteos, casino, anti-raid, IA y más</p></div>
+              <div><span>API</span><p>conectado al servidor de Minecraft por HTTP</p></div>
+              <div><span>/1</span><p>un solo comando, <code style="font-family:var(--mono);color:var(--bone)">/setup</code>, para configurarlo todo</p></div>
+            </div>
+          </div>
+          <div class="st" style="--i:2">
+            <div class="dc">
+              <div class="msg">
+                <div class="av">K</div>
+                <div style="flex:1;min-width:0">
+                  <div class="who"><b>KaxGuard</b><span class="app-tag">APP</span><span class="hr">hoy a las 17:02</span></div>
+                  <div class="emb" id="emb"></div>
+                  <div class="sel">
+                    <label for="modulo" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Módulo a configurar</label>
+                    <select id="modulo">
+                      <option value="inicio">¿Qué quieres configurar?</option>
+                      <option value="tickets">Tickets</option>
+                      <option value="verif">Verificación</option>
+                      <option value="sorteos">Sorteos</option>
+                      <option value="antiraid">Anti-raid</option>
+                      <option value="ia">IA</option>
+                      <option value="mc">Servidor de Minecraft</option>
+                    </select>
+                  </div>
+                  <div class="solo">Solo tú puedes verlo</div>
+                </div>
+              </div>
+            </div>
+            <div class="nota">// maqueta interactiva, no es el bot real</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACTO -->
+      <section class="vista" id="v-contacto" role="tabpanel" aria-label="Contacto">
+        <div class="eti st">contacto</div>
+        <div class="grande st" style="--i:1">¿Montamos<br><em>tu network?</em></div>
+        <p class="intro st" style="--i:2">La forma más rápida es abrir un ticket en mi Discord. Cuéntame qué necesitas y te respondo con alcance, plazos y presupuesto.</p>
+        <div class="contacto-grid">
+          <a class="canal panel prim st" style="--i:3" href="https://discord.gg/XsK4PPQjy7" target="_blank" rel="noopener">
+            <span class="top"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.4C.6 9 0 13.6.3 18.1A19.8 19.8 0 0 0 6.3 21l1.3-2a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4-2 1 1.3 2a19.7 19.7 0 0 0 6-2.9c.4-5.2-.7-9.8-3.4-13.7ZM8.5 15.3c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm7 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg><svg class="fl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+            <span><small>Recomendado</small><b>Abrir ticket en Discord</b></span>
+          </a>
+          <button class="canal panel copiar st" style="--i:4" data-v="ediytem@gmail.com">
+            <span class="top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14"/><path d="m3 7 9 6 9-6"/></svg><svg class="fl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12"/><path d="M16 8V4H4v12h4"/></svg></span>
+            <span><small>Correo · pulsa para copiar</small><b>ediytem@gmail.com</b></span>
+          </button>
+          <a class="canal panel st" style="--i:5" href="https://github.com/ediguard23" target="_blank" rel="noopener">
+            <span class="top"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.6.4-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9V21c0 .3.2.6.7.5A10 10 0 0 0 12 2Z"/></svg><svg class="fl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+            <span><small>Código</small><b>github.com/ediguard23</b></span>
+          </a>
+        </div>
+        <div class="aviso" id="aviso" aria-live="polite"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ============ BARRA DE ESTADO ============ -->
+  <footer class="estado-bar">
+    <span class="ok"><i></i>online</span>
+    <span class="tec-bar">TPS <b id="tps">20.0</b></span>
+    <span class="tec-bar">MSPT <b id="mspt">0.43</b></span>
+    <span class="musica" id="musica">
+      <button id="m-play" aria-label="Reproducir música">
+        <svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>
+        <svg class="i-pausa" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+      </button>
+      <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="m-tit">LEGACY <em>slowed</em></span>
+      <button id="m-mute" aria-label="Silenciar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor" stroke="none"/><path class="ondas" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="cruz" d="m16 9 6 6m0-6-6 6"/></svg>
+      </button>
+      <input type="range" id="m-vol" min="0" max="100" value="35" aria-label="Volumen de la música">
+    </span>
+    <span class="der"><span>vista <b id="vista-act">inicio</b></span><span>© <span id="anio"></span> xgdier_</span><span><b id="reloj">--:--</b></span></span>
+  </footer>
+</div>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Captura ampliada">
+  <button class="x" id="lbx" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <img id="lbimg" alt="">
+  <div class="pie" id="lbpie"></div>
+</div>
+
+<script src="vendor/skinview3d.bundle.js"></script>
+<script>
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+$('#anio').textContent = new Date().getFullYear();
+
+/* ---------- arranque (una vez por sesión) ---------- */
+(() => {
+  const el = $('#arranque'), log = $('#arranque-log');
+  let visto = false;
+  try { visto = sessionStorage.getItem('arranque') === '1'; sessionStorage.setItem('arranque', '1'); } catch (e) {}
+  if (visto || reduce) { el.remove(); return; }
+  const lineas = ['<span class="r">●</span> conectando con la network…', '<span class="r">✔</span> proxy', '<span class="r">✔</span> servidores', '<span class="r">✔</span> bot y web', '<span class="b">&gt; xgdier_</span>'];
+  lineas.forEach((l, i) => setTimeout(() => log.innerHTML += l + '\n', i * 170));
+  setTimeout(() => el.classList.add('fuera'), lineas.length * 170 + 350);
+  setTimeout(() => el.remove(), lineas.length * 170 + 1100);
+  el.addEventListener('click', () => el.classList.add('fuera'));
+})();
+
+/* ---------- fondo: rejilla de redstone ---------- */
+(() => {
+  const cv = $('#red'), cx = cv.getContext('2d');
+  const G = 36;                     // separación de la rejilla
+  let W, H, cols, rows, dpr, raton = { x: -999, y: -999 }, senales = [];
+  const medir = () => {
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cols = Math.ceil(W / G) + 1; rows = Math.ceil(H / G) + 1;
+  };
+  medir(); addEventListener('resize', medir);
+  addEventListener('pointermove', e => { raton.x = e.clientX; raton.y = e.clientY; }, { passive: true });
+  document.addEventListener('pointerleave', () => { raton.x = raton.y = -999; });
+
+  // una señal recorre la rejilla y gira en las esquinas, como un cable de redstone
+  const nueva = (x, y) => {
+    const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+    senales.push({ x: x ?? Math.floor(Math.random() * cols), y: y ?? Math.floor(Math.random() * rows),
+      d: dirs[Math.floor(Math.random() * 4)], t: 0, paso: 0, rastro: [], vida: 14 + Math.floor(Math.random() * 18) });
+  };
+  // un clic en una zona vacía suelta varias señales desde ese punto
+  addEventListener('pointerdown', e => {
+    if (e.target.closest('button,a,select,canvas,.dc,.pantalla')) return;
+    for (let i = 0; i < 4; i++) nueva(Math.round(e.clientX / G), Math.round(e.clientY / G));
+  });
+
+  let ultima = performance.now(), acum = 0;
+  const pintar = t => {
+    const dt = Math.min(t - ultima, 50); ultima = t;
+    cx.clearRect(0, 0, W, H);
+    // puntos de polvo de redstone; se encienden cerca del ratón
+    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+      const x = i * G, y = j * G, k = Math.max(0, 1 - Math.hypot(x - raton.x, y - raton.y) / 170);
+      cx.fillStyle = k > 0 ? `rgba(255,${61 + Math.round(40 * k)},46,${.1 + k * .75})` : 'rgba(110,40,34,.16)';
+      const s = 1.6 + k * 2.2;
+      cx.fillRect(x - s / 2, y - s / 2, s, s);
+    }
+    if (!reduce) {
+      acum += dt;
+      if (acum > 650 && senales.length < 9) { nueva(); acum = 0; }
+      for (const s of senales) {
+        s.t += dt;
+        while (s.t > 70) {
+          s.t -= 70; s.rastro.push([s.x, s.y]); if (s.rastro.length > 7) s.rastro.shift();
+          s.x += s.d[0]; s.y += s.d[1]; s.paso++;
+          if (Math.random() < .22) s.d = Math.random() < .5 ? [s.d[1], s.d[0]] : [-s.d[1], -s.d[0]];
+        }
+        const pts = [...s.rastro, [s.x, s.y]], fin = s.paso > s.vida ? Math.max(0, 1 - (s.paso - s.vida) / 6) : 1;
+        cx.lineWidth = 2;
+        for (let i = 1; i < pts.length; i++) {
+          cx.strokeStyle = `rgba(255,61,46,${(i / pts.length) * .7 * fin})`;
+          cx.beginPath(); cx.moveTo(pts[i-1][0] * G, pts[i-1][1] * G); cx.lineTo(pts[i][0] * G, pts[i][1] * G); cx.stroke();
+        }
+        cx.shadowColor = '#ff3d2e'; cx.shadowBlur = 12; cx.fillStyle = `rgba(255,122,69,${fin})`;
+        cx.fillRect(s.x * G - 3, s.y * G - 3, 6, 6); cx.shadowBlur = 0;
+      }
+      senales = senales.filter(s => s.paso < s.vida + 6 && s.x > -2 && s.y > -2 && s.x < cols + 2 && s.y < rows + 2);
+    }
+    requestAnimationFrame(pintar);
+  };
+  requestAnimationFrame(pintar);
+})();
+
+/* ---------- iconos flotantes ---------- */
+(() => {
+  const srcs = ['java.png', 'nodejs.webp', 'html.png', 'mysql.png'], cont = $('#iconos');
+  const cols = innerWidth < 700 ? 3 : 6, rows = 4; let k = 0;
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    if (Math.random() < .35) continue;
+    const img = new Image(), s = 24 + Math.random() * 22, R = n => ((Math.random() * 2 - 1) * n).toFixed(1);
+    img.src = 'img/stack/' + srcs[k++ % 4]; img.alt = '';
+    img.style.cssText = `width:${s}px;left:${(c + .2 + Math.random() * .6) / cols * 100}%;top:${(r + .2 + Math.random() * .6) / rows * 100}%;--d:${16 + Math.random() * 14}s;--dx:${R(18)}px;--dy:${R(26)}px;--r0:${R(14)}deg;--r1:${R(14)}deg;animation-delay:-${(Math.random() * 20).toFixed(1)}s`;
+    cont.appendChild(img);
+  }
+})();
+
+/* ---------- skin 3D (skin y capa reales, descargadas de Mojang) ---------- */
+(() => {
+  const canvas = $('#skin');
+  if (!window.skinview3d || !canvas) return;
+  const marco = canvas.parentElement, grande = innerWidth > 900;
+  const v = new skinview3d.SkinViewer({ canvas, width: marco.clientWidth, height: marco.clientHeight, skin: 'img/skin.png', cape: 'img/capa.png', model: 'default' });
+  const etiqueta = () => v.nameTag = new skinview3d.NameTagObject('xgdier_', { font: '500 44px "Geist Mono", monospace', textStyle: '#f2eae0', backgroundStyle: 'rgba(12,10,11,.55)', margin: [6, 14, 6, 14] });
+  if (grande) document.fonts.load('500 44px "Geist Mono"').then(etiqueta, etiqueta);
+  v.zoom = grande ? 0.72 : 0.82;
+  v.fov = 38;
+  v.playerObject.rotation.y = 0.45;
+  v.globalLight.intensity = 2.4; v.cameraLight.intensity = 0.9;
+  v.controls.enableZoom = false; v.controls.enablePan = false;
+  v.autoRotate = !reduce; v.autoRotateSpeed = 0.7;
+  const anims = {
+    idle: () => new skinview3d.IdleAnimation(),
+    wave: () => new skinview3d.WaveAnimation(),
+    walk: () => { const a = new skinview3d.WalkingAnimation(); a.speed = 0.7; return a; },
+    run:  () => { const a = new skinview3d.RunningAnimation(); a.speed = 0.6; return a; },
+  };
+  v.animation = reduce ? null : anims.idle();
+  $$('.poses button').forEach(b => b.addEventListener('click', () => {
+    $$('.poses button').forEach(x => x.classList.toggle('on', x === b));
+    v.animation = anims[b.dataset.a]();
+  }));
+  // al arrastrar se para el giro automático; vuelve a los 4 s
+  let t;
+  canvas.addEventListener('pointerdown', () => { v.autoRotate = false; $('.pista').classList.add('fuera'); clearTimeout(t); });
+  addEventListener('pointerup', () => { clearTimeout(t); t = setTimeout(() => v.autoRotate = !reduce, 4000); });
+  new ResizeObserver(() => v.setSize(marco.clientWidth, marco.clientHeight)).observe(marco);
+})();
+
+/* ---------- navegación por pestañas ---------- */
+const nav = (() => {
+  const tabs = $$('.tab'), sub = $('#subrayado'), orden = tabs.map(t => t.dataset.v);
+  let actual = 'inicio';
+  const subrayar = () => { const t = tabs.find(x => x.dataset.v === actual); sub.style.left = t.offsetLeft + 'px'; sub.style.width = t.offsetWidth + 'px'; };
+  const ir = (id, guardar = true) => {
+    if (!orden.includes(id)) id = 'inicio';
+    actual = id;
+    tabs.forEach(t => {
+      const on = t.dataset.v === id;
+      t.classList.toggle('on', on); t.setAttribute('aria-selected', on);
+      if (on && innerWidth <= 900) t.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    });
+    $$('.vista').forEach(v => { const on = v.id === 'v-' + id; v.classList.toggle('on', on); if (on) v.scrollTop = 0; });
+    $('#vista-act').textContent = id;
+    subrayar();
+    if (guardar) history.replaceState(null, '', '#' + id);
+  };
+  tabs.forEach(t => t.addEventListener('click', () => ir(t.dataset.v)));
+  $$('[data-ir]').forEach(b => b.addEventListener('click', () => ir(b.dataset.ir)));
+  addEventListener('keydown', e => {
+    if (e.target.closest('select,input,textarea') || $('#lb').classList.contains('on')) return;
+    const i = orden.indexOf(actual);
+    if (e.key === 'ArrowRight') ir(orden[(i + 1) % orden.length]);
+    if (e.key === 'ArrowLeft') ir(orden[(i - 1 + orden.length) % orden.length]);
+  });
+  addEventListener('resize', subrayar);
+  document.fonts.ready.then(subrayar);
+  ir(location.hash.slice(1) || 'inicio', false);
+  return { ir };
+})();
+
+/* ---------- proyectos: visor + lista ---------- */
+(() => {
+  const P = [
+    { t: 'PeakMC', tipo: 'Network completa', imgs: ['hub-entrada.webp', 'hub-modos.webp'], d: 'Hub, cinco modos conectados por portales con jugadores en vivo, proxy, permisos, sanciones, bot y tienda. Todo montado por mí.', c: ['Velocity', 'NIGHT', 'MySQL', 'Node.js'] },
+    { t: 'Arcade', tipo: 'Party games', imgs: ['arcade.webp'], d: 'Motor de minijuegos propio: 35 minijuegos, 16 con mapa generado, temas y lore por juego, y partys con partida privada.', c: ['Java', 'PKArcade'] },
+    { t: 'Battle Royale', tipo: 'UHC survival', imgs: ['battle-royale.webp'], d: 'Equipos, kits y escenarios configurables sobre un perfil propio del fork NIGHT.', c: ['Java', 'NIGHT'] },
+    { t: 'Lifesteal', tipo: 'Modo SMP', imgs: ['lifesteal.webp'], d: 'Servidor completo con plugins propios, recompensas, rankings, tienda y reinicios de temporada automatizados.', c: ['Java', 'Tebex', 'Bash'] },
+    { t: 'peakmc.lat', tipo: 'Web y tienda', imgs: ['peakmc-web.webp'], d: 'Tienda con carrito, login con el nick para Java y Bedrock, y entrega al instante en el servidor.', c: ['HTML', 'JavaScript', 'Supabase'] },
+    { t: 'KaxGuard', tipo: 'Bot de Discord', imgs: ['kaxguard.png'], d: 'Bot modular que se configura con /setup: tickets, verificación, sorteos, casino, anti-raid, IA y conexión con el servidor.', c: ['Node.js', 'discord.js', 'API'], fit: 'contain' },
+  ];
+  const pant = $('#pantalla'), mini = $('#miniaturas'), ficha = $('#ficha-pj'), lista = $('#lista');
+  let pj = 0, im = 0;
+  // todas las capturas viven dentro de la pantalla y se cruzan con un fundido
+  const capas = {};
+  P.forEach(p => p.imgs.forEach(f => {
+    const i = new Image(); i.src = 'img/' + f; i.alt = p.t; i.decoding = 'async';
+    if (p.fit) i.style.objectFit = p.fit;
+    pant.insertBefore(i, pant.firstChild); capas[f] = i;
+  }));
+  lista.innerHTML = P.map((p, i) => `<button class="item" role="option" data-i="${i}"><img src="img/${p.imgs[0]}" alt="" loading="lazy"><span><small>${p.tipo}</small><b>${p.t}</b></span><span class="k">0${i + 1}</span></button>`).join('');
+  const ver = (i, j = 0) => {
+    pj = i; im = j; const p = P[i];
+    Object.values(capas).forEach(x => x.classList.remove('on'));
+    capas[p.imgs[j]].classList.add('on');
+    mini.innerHTML = p.imgs.length > 1 ? p.imgs.map((f, k) => `<button class="${k === j ? 'on' : ''}" data-k="${k}" aria-label="Captura ${k + 1}"><img src="img/${f}" alt=""></button>`).join('') : '';
+    ficha.innerHTML = `<div><div class="tipo">${p.tipo}</div><h3>${p.t}</h3><p>${p.d}</p></div><div class="chips">${p.c.map(c => `<span class="chip">${c}</span>`).join('')}</div>`;
+    $$('.item').forEach((b, k) => { b.classList.toggle('on', k === i); b.setAttribute('aria-selected', k === i); });
+  };
+  lista.addEventListener('click', e => { const b = e.target.closest('.item'); if (b) ver(+b.dataset.i); });
+  mini.addEventListener('click', e => { e.stopPropagation(); const b = e.target.closest('button'); if (b) ver(pj, +b.dataset.k); });
+  ver(0);
+
+  const lb = $('#lb');
+  const abrir = () => { $('#lbimg').src = 'img/' + P[pj].imgs[im]; $('#lbimg').alt = P[pj].t; $('#lbpie').textContent = P[pj].t + ' · ' + P[pj].tipo; lb.classList.add('on'); $('#lbx').focus(); };
+  const cerrar = () => { lb.classList.remove('on'); pant.focus(); };
+  pant.addEventListener('click', abrir);
+  pant.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+  $('#lbx').onclick = cerrar;
+  lb.addEventListener('click', e => { if (e.target === lb) cerrar(); });
+  addEventListener('keydown', e => {
+    if (lb.classList.contains('on') && e.key === 'Escape') cerrar();
+    if (!$('#v-proyectos').classList.contains('on') || lb.classList.contains('on')) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); ver((pj + 1) % P.length); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); ver((pj - 1 + P.length) % P.length); }
+  });
+})();
+
+/* ---------- maqueta del /setup de KaxGuard ---------- */
+(() => {
+  const emb = $('#emb'), sel = $('#modulo');
+  const mods = [['Roles y permisos','1 rol de autorol'],['Verificación','activa'],['Bienvenida','activa'],['Tickets','listo · 4 abiertos'],['Postulaciones','abiertas · 1 puesto'],['Anuncios','activo'],['Casino','abierto'],['Sorteos','listos'],['Encuestas','1 abierta'],['Automod','desactivado',1],['Anti-raid','desactivado',1],['IA','activa · 18/1000 hoy'],['Registros','configurado'],['Servidor de Minecraft','configurado'],['Estado del bot','viendo el servidor']];
+  const paneles = {
+    tickets: ['Tickets', 'Los jugadores abren un ticket y el staff lo atiende en un canal privado.', [['Panel de tickets','#soporte'],['Categorías','5 de 5 activas'],['Transcripción al cerrar',1],['Avisar al staff',1]]],
+    verif: ['Verificación', 'Quien entra pulsa un botón para verificarse y recibe el rol.', [['Canal','#verificación'],['Rol al verificar','Jugador'],['Captcha',1],['Mensaje de bienvenida',1]]],
+    sorteos: ['Sorteos', 'Crea sorteos con duración, ganadores y requisitos.', [['Ganadores por sorteo','1'],['Requiere rol','Jugador'],['Anunciar ganador',1],['Repetir sorteo',0]]],
+    antiraid: ['Anti-raid', 'Detecta entradas masivas y bloquea el servidor automáticamente.', [['Umbral','10 entradas / 10 s'],['Acción','Bloquear entradas'],['Avisar al staff',1],['Activo',0]]],
+    ia: ['IA', 'Responde dudas frecuentes de los jugadores en los canales que elijas.', [['Canales','#ayuda'],['Uso de hoy','18 / 1000'],['Responder en tickets',1],['Activa',1]]],
+    mc: ['Servidor de Minecraft', 'Conecta el bot con el servidor para mostrar su estado y sincronizar datos.', [['Dirección','play.peakmc.lat'],['Estado en el perfil del bot',1],['Sincronizar whitelist',1],['API','conectada']]],
+  };
+  const inicio = () => { emb.style.borderLeftColor = 'var(--rs)'; emb.innerHTML = `<h4>Configuración de KaxGuard</h4><div class="d">Elige abajo qué quieres configurar. Todo se guarda al momento.</div><div class="mods">${mods.map(([t, s, off]) => `<div class="mod${off ? ' off' : ''}"><b>${t}</b><span>${s}</span></div>`).join('')}</div><div class="pie">Todo configurado</div>`; };
+  const panel = id => {
+    const [t, d, filas] = paneles[id];
+    emb.style.borderLeftColor = '#5865f2';
+    emb.innerHTML = `<h4>${t}</h4><div class="d">${d}</div><div class="det">${filas.map(([k, v]) => `<div class="fila"><span class="k">${k}</span>${typeof v === 'number' ? `<button class="sw${v ? ' on' : ''}" aria-label="${k}" aria-pressed="${!!v}"></button>` : `<span>${v}</span>`}</div>`).join('')}</div><div class="pie">Cambios guardados al momento</div>`;
+    emb.querySelectorAll('.sw').forEach(b => b.onclick = () => { b.classList.toggle('on'); b.setAttribute('aria-pressed', b.classList.contains('on')); });
+  };
+  sel.addEventListener('change', () => sel.value === 'inicio' ? inicio() : panel(sel.value));
+  inicio();
+})();
+
+/* ---------- música de fondo ---------- */
+(() => {
+  const caja = $('#musica'), vol = $('#m-vol'), audio = new Audio('audio/legacy.mp3');
+  audio.loop = true; audio.preload = 'auto';
+  const leer = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } };
+  const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  let nivel = +leer('musica-vol', 35), pausadaAMano = leer('musica-pausa', '0') === '1', mudo = false;
+
+  const pintarVol = () => { vol.value = nivel; vol.style.setProperty('--v', nivel + '%'); caja.classList.toggle('mudo', mudo || nivel === 0); };
+  const aplicar = () => { audio.volume = mudo ? 0 : Math.pow(nivel / 100, 1.6); };
+  const estado = () => { const s = !audio.paused; caja.classList.toggle('sonando', s); $('#m-play').setAttribute('aria-label', s ? 'Pausar música' : 'Reproducir música'); };
+  audio.addEventListener('play', estado); audio.addEventListener('pause', estado);
+
+  // entrada suave para que no suene de golpe
+  const fundido = () => {
+    const meta = audio.volume; audio.volume = 0;
+    let n = 0; const t = setInterval(() => { n++; audio.volume = meta * Math.min(1, n / 20); if (n >= 20) clearInterval(t); }, 60);
+  };
+  const tocar = () => { aplicar(); return audio.play().then(fundido); };
+
+  pintarVol(); aplicar();
+  if (!pausadaAMano) {
+    // el navegador suele bloquear el audio hasta que hay una interacción; entonces arranca con la primera
+    tocar().catch(() => {
+      const primera = e => {
+        if (e.target.closest && e.target.closest('#musica')) return;
+        ['pointerdown', 'keydown'].forEach(ev => removeEventListener(ev, primera, true));
+        if (!pausadaAMano && audio.paused) tocar().catch(() => {});
+      };
+      ['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, primera, true));
+    });
+  }
+
+  $('#m-play').addEventListener('click', () => {
+    if (audio.paused) { pausadaAMano = false; guardar('musica-pausa', '0'); tocar().catch(() => {}); }
+    else { pausadaAMano = true; guardar('musica-pausa', '1'); audio.pause(); }
+  });
+  $('#m-mute').addEventListener('click', () => {
+    mudo = !mudo;
+    if (!mudo && nivel === 0) { nivel = 35; guardar('musica-vol', nivel); }
+    $('#m-mute').setAttribute('aria-label', mudo ? 'Activar sonido' : 'Silenciar');
+    aplicar(); pintarVol();
+  });
+  vol.addEventListener('input', () => { nivel = +vol.value; mudo = false; guardar('musica-vol', nivel); aplicar(); pintarVol(); });
+  // las flechas del volumen no deben cambiar de pestaña
+  vol.addEventListener('keydown', e => e.stopPropagation());
+})();
+
+/* ---------- barra de estado y copiar correo ---------- */
+(() => {
+  const reloj = () => $('#reloj').textContent = new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+  reloj(); setInterval(reloj, 15000);
+  if (!reduce) setInterval(() => { $('#tps').textContent = Math.random() < .85 ? '20.0' : '19.9'; $('#mspt').textContent = (0.35 + Math.random() * .3).toFixed(2); }, 1400);
+  $$('.copiar').forEach(b => b.addEventListener('click', () => {
+    const v = b.dataset.v, aviso = $('#aviso');
+    const ok = () => { if (!$('#v-contacto').classList.contains('on')) nav.ir('contacto'); aviso.textContent = '✔ correo copiado'; setTimeout(() => aviso.textContent = '', 2600); };
+    navigator.clipboard ? navigator.clipboard.writeText(v).then(ok, () => location.href = 'mailto:' + v) : location.href = 'mailto:' + v;
+  }));
+})();
+</script>
+</body>
+</html>
